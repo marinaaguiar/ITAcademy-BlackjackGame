@@ -7,7 +7,25 @@ import org.springframework.data.relational.core.mapping.Table;
 public class Player {
 
     @Id
-    private Long id;
+    private String id;
     private String name;
-    private Integer score;
+    private int score;
+    private int totalWins;
+    private int totalLosses;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public String getId() {
+        return id;
+    }
 }
