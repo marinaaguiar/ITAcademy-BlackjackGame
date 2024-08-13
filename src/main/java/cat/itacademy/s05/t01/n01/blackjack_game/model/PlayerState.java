@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerState {
-    private String playerId;
+    private int playerId;
     private List<String> hand;
     private int score;
     private PlayerAction action;
     private List<String> splitHand;
 
-    public PlayerState(String playerId) {
+    public PlayerState(int playerId) {
         this.playerId = playerId;
         this.action = PlayerAction.PLAYING;
         this.hand = new ArrayList<>();
@@ -25,7 +25,7 @@ public class PlayerState {
         this.action = playerAction;
     }
 
-    public void setPlayerId(String playerId) {
+    public void setPlayerId(int playerId) {
         this.playerId = playerId;
     }
 
@@ -33,7 +33,7 @@ public class PlayerState {
         this.hand = hand;
     }
 
-    public String getPlayerId() {
+    public int getPlayerId() {
         return playerId;
     }
 

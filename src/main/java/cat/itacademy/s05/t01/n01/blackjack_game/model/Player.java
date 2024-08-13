@@ -1,13 +1,16 @@
 package cat.itacademy.s05.t01.n01.blackjack_game.model;
 
+import jakarta.persistence.Entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
+import java.util.UUID;
 
+@Entity
 @Table("players")
 public class Player {
 
     @Id
-    private String id;
+    private int id;
     private String name;
     private int score;
     private int totalWins;
@@ -25,7 +28,7 @@ public class Player {
         return score;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 }

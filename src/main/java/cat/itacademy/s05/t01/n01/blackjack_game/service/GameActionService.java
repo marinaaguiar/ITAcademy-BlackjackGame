@@ -27,7 +27,7 @@ public class GameActionService {
         return Mono.just(game.getDeck().removeFirst());
     }
 
-    public Mono<Game> hit(String gameId, String playerId) {
+    public Mono<Game> hit(String gameId, int playerId) {
         return gameRepository.findById(gameId)
                 .flatMap(game -> {
                     if (game.getGameState() == GameState.FINISHED) {
@@ -35,7 +35,7 @@ public class GameActionService {
                     }
 
                     return Mono.justOrEmpty(game.getPlayerStates().stream()
-                                    .filter(ps -> ps.getPlayerId().equals(playerId))
+                                    .filter(ps -> ps.getPlayerId() == playerId)
                                     .findFirst())
                             .flatMap(playerState -> {
                                 if (playerState.getAction() != PlayerAction.PLAYING) {
@@ -56,7 +56,7 @@ public class GameActionService {
                 });
     }
 
-    public Mono<Game> stand(String gameId, String playerId) {
+    public Mono<Game> stand(String gameId, int playerId) {
         return gameRepository.findById(gameId)
                 .flatMap(game -> {
                     if (game.getGameState() == GameState.FINISHED) {
@@ -64,7 +64,7 @@ public class GameActionService {
                     }
 
                     return Mono.justOrEmpty(game.getPlayerStates().stream()
-                                    .filter(ps -> ps.getPlayerId().equals(playerId))
+                                    .filter(ps -> ps.getPlayerId() == playerId)
                                     .findFirst())
                             .flatMap(playerState -> {
                                 if (playerState.getAction() != PlayerAction.PLAYING) {
@@ -84,7 +84,7 @@ public class GameActionService {
                 });
     }
 
-    public Mono<Game> doubleDown(String gameId, String playerId, int amountBet) {
+    public Mono<Game> doubleDown(String gameId, int playerId, int amountBet) {
         return gameRepository.findById(gameId)
                 .flatMap(game -> {
                     if (game.getGameState() == GameState.FINISHED) {
@@ -92,7 +92,7 @@ public class GameActionService {
                     }
 
                     return Mono.justOrEmpty(game.getPlayerStates().stream()
-                                    .filter(ps -> ps.getPlayerId().equals(playerId))
+                                    .filter(ps -> ps.getPlayerId() == playerId)
                                     .findFirst())
                             .flatMap(playerState -> {
                                 if (playerState.getAction() != PlayerAction.PLAYING) {
@@ -119,7 +119,7 @@ public class GameActionService {
                 });
     }
 
-    public Mono<Game> surrender(String gameId, String playerId) {
+    public Mono<Game> surrender(String gameId, int playerId) {
         return gameRepository.findById(gameId)
                 .flatMap(game -> {
                     if (game.getGameState() == GameState.FINISHED) {
@@ -127,7 +127,7 @@ public class GameActionService {
                     }
 
                     return Mono.justOrEmpty(game.getPlayerStates().stream()
-                                    .filter(ps -> ps.getPlayerId().equals(playerId))
+                                    .filter(ps -> ps.getPlayerId() == playerId)
                                     .findFirst())
                             .flatMap(playerState -> {
                                 if (playerState.getAction() != PlayerAction.PLAYING) {
