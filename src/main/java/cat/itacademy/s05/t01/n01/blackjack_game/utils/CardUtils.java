@@ -6,19 +6,17 @@ import java.util.List;
 
 public class CardUtils {
 
-    private static final List<String> DECK = List.of(
-            // Hearts
-            "2H", "3H", "4H", "5H", "6H", "7H", "8H", "9H", "10H", "JH", "QH", "KH", "AH",
-            // Diamonds
-            "2D", "3D", "4D", "5D", "6D", "7D", "8D", "9D", "10D", "JD", "QD", "KD", "AD",
-            // Clubs
-            "2C", "3C", "4C", "5C", "6C", "7C", "8C", "9C", "10C", "JC", "QC", "KC", "AC",
-            // Spades
-            "2S", "3S", "4S", "5S", "6S", "7S", "8S", "9S", "10S", "JS", "QS", "KS", "AS"
-    );
-
     public static List<String> createShuffledDeck() {
-        List<String> deck = new ArrayList<>(DECK);
+        List<String> deck = new ArrayList<>();
+        String[] suits = {"H", "D", "C", "S"};
+        String[] values = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
+
+        for (String suit : suits) {
+            for (String value : values) {
+                deck.add(value + suit);
+            }
+        }
+
         Collections.shuffle(deck);
         return deck;
     }
