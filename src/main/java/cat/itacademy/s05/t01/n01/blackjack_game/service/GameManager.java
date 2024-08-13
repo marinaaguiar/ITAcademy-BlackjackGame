@@ -123,7 +123,7 @@ public class GameManager implements GameService {
                 .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + gameId)))
                 .flatMap(game -> {
                     PlayerState playerState = game.getPlayerStates().getFirst();
-
+                    
                     switch (playerAction) {
                         case HIT:
                             return gameActionService.hit(game.getID(), playerState.getPlayerId());
