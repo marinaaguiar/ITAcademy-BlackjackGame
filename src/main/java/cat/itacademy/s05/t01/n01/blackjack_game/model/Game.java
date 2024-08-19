@@ -69,4 +69,12 @@ public class Game {
     public String getID() {
         return id;
     }
+
+    public void setPlayersState(List<PlayerState> playerStates) {
+        this.playersState = playerStates;
+    }
+
+    public List<PlayerState> getPlayersState() {
+        return playersState;
+    }
 }

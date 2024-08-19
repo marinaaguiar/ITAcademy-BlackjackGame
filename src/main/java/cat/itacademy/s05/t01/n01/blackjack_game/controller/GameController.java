@@ -19,6 +19,10 @@ public class GameController {
     @Autowired
     private GameService gameService;
 
+    public GameController(GameService gameService) {
+        this.gameService = gameService;
+    }
+
     @PostMapping("/new")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Game> createSinglePlayerGame(@RequestBody String playerName) {

@@ -2,6 +2,8 @@ package cat.itacademy.s05.t01.n01.blackjack_game.model;
 
 import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 public class PlayerState {
@@ -47,5 +49,19 @@ public class PlayerState {
 
     public int getScore() {
         return score;
+    }
+
+    public List<String> getPlayerHand() {
+        return hand;
+    }
+
+    @Override
+    public String toString() {
+        return "PlayerState{" +
+                "playerId=" + playerId +
+                ", hand=" + hand +
+                ", score=" + score +
+                ", action=" + action +
+                '}';
     }
 }

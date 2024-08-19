@@ -1,6 +1,7 @@
 package cat.itacademy.s05.t01.n01.blackjack_game.service;
 
 import cat.itacademy.s05.t01.n01.blackjack_game.exception.InvalidMoveException;
+import cat.itacademy.s05.t01.n01.blackjack_game.exception.PlayerNotFoundException;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.Game;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.Player;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerState;
@@ -50,13 +51,16 @@ public class GameManager implements GameService {
                     Game game = new Game();
                     game.setID(UUID.randomUUID().toString());
                     game.setGameState(GameState.ONGOING);
+
                     PlayerState playerState = new PlayerState(savedPlayer.getId());
                     playerState.setHand(new ArrayList<>());
                     playerState.setScore(0);
+
                     game.setPlayerStates(new ArrayList<>(List.of(playerState)));
                     game.setDealerHand(new ArrayList<>());
                     game.setDealerScore(0);
-                    game.setDeck(CardUtils.createShuffledDeck());
+
+                    gameActionService.initializeGame(game); // Initialize with 6 decks
 
                     return gameRepository.save(game);
                 });
@@ -68,7 +72,7 @@ public class GameManager implements GameService {
                 .collectList()
                 .flatMap(players -> {
                     if (players.size() != playerIds.size()) {
-                        return Mono.error(new IllegalArgumentException("Some players not found"));
+                        return Mono.error(new PlayerNotFoundException());
                     }
 
                     Game game = new Game();
@@ -80,6 +84,10 @@ public class GameManager implements GameService {
                             .collect(Collectors.toList());
 
                     game.setPlayerStates(new ArrayList<>(playerStates));
+                    game.setDealerHand(new ArrayList<>());
+                    game.setDealerScore(0);
+
+                    gameActionService.initializeGame(game); // Initialize with 6 decks
 
                     return Flux.fromIterable(playerStates)
                             .flatMap(playerState -> gameActionService.dealCard(game)
@@ -122,22 +130,39 @@ public class GameManager implements GameService {
         return gameRepository.findById(gameId)
                 .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + gameId)))
                 .flatMap(game -> {
+                    if (game.getPlayerStates() == null || game.getPlayerStates().isEmpty()) {
+                        return Mono.error(new IllegalStateException("No player states found for game id: " + gameId));
+                    }
+
                     PlayerState playerState = game.getPlayerStates().getFirst();
-                    
+                    if (playerState == null) {
+                        return Mono.error(new IllegalStateException("Player state is null for game id: " + gameId));
+                    }
+
+                    Mono<Game> actionResult = Mono.error(new InvalidMoveException("Invalid move type: " + playerAction));
+
                     switch (playerAction) {
                         case HIT:
-                            return gameActionService.hit(game.getID(), playerState.getPlayerId());
+                            actionResult = gameActionService.hit(game.getID(), playerState.getPlayerId());
+                            break;
                         case STANDING:
-                            return gameActionService.stand(game.getID(), playerState.getPlayerId());
+                            actionResult = gameActionService.stand(game.getID(), playerState.getPlayerId());
+                            break;
                         case DOUBLED_DOWN:
-                            return gameActionService.doubleDown(game.getID(), playerState.getPlayerId(), amountBet);
+                            actionResult = gameActionService.doubleDown(game.getID(), playerState.getPlayerId(), amountBet);
+                            break;
                         case SURRENDERED:
-                            return gameActionService.surrender(game.getID(), playerState.getPlayerId());
-                        default:
-                            return Mono.error(new InvalidMoveException("Invalid move type: " + playerAction));
+                            actionResult = gameActionService.surrender(game.getID(), playerState.getPlayerId());
+                            break;
                     }
+
+                    return actionResult
+                            .switchIfEmpty(Mono.error(new IllegalStateException("No action result found for playerAction: " + playerAction)))
+                            .doOnNext(result -> System.out.println("Action result: " + result))
+                            .doOnError(error -> System.err.println("Error during action: " + error.getMessage()));
                 })
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Game not found")));
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Game not found")))
+                .doOnError(error -> System.err.println("Error in makeMove: " + error.getMessage()));
     }
 
     @Override
@@ -153,19 +178,19 @@ public class GameManager implements GameService {
                     player.setName(newName);
                     return playerRepository.save(player);
                 })
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Player not found")));
+                .switchIfEmpty(Mono.error(new PlayerNotFoundException()));
     }
 
     @Override
     public Mono<Game> getGameDetails(String id) {
         return gameRepository.findById(id)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Game not found")));
+                .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + id)));
     }
 
     @Override
     public Mono<Void> deleteGame(String id) {
         return gameRepository.findById(id)
                 .flatMap(game -> gameRepository.delete(game))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Game not found")));
+                .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + id)));
     }
 }
