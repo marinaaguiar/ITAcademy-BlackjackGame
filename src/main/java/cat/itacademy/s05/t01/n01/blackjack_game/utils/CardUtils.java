@@ -6,14 +6,16 @@ import java.util.List;
 
 public class CardUtils {
 
-    public static List<String> createShuffledDeck() {
+    public static List<String> createShuffledDeck(int numberOfDecks) {
         List<String> deck = new ArrayList<>();
         String[] suits = {"H", "D", "C", "S"};
         String[] values = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 
-        for (String suit : suits) {
-            for (String value : values) {
-                deck.add(value + suit);
+        for (int i = 0; i < numberOfDecks; i++) {
+            for (String suit : suits) {
+                for (String value : values) {
+                    deck.add(value + suit);
+                }
             }
         }
 
