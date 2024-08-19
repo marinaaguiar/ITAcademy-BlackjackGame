@@ -1,47 +1,55 @@
-package cat.itacademy.s05.t01.n01.blackjack_game;
+package cat.itacademy.s05.t01.n01.blackjack_game.controller;
 
 import cat.itacademy.s05.t01.n01.blackjack_game.model.Game;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.MoveRequest;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerState;
 import cat.itacademy.s05.t01.n01.blackjack_game.service.GameService;
-import cat.itacademy.s05.t01.n01.blackjack_game.controller.GameController;
 
+import cat.itacademy.s05.t01.n01.blackjack_game.utils.GameState;
 import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
+import static org.bson.assertions.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @WebFluxTest(GameController.class)
 public class GameControllerTest {
 
-    @Mock
+    @MockBean
     private GameService gameService;
 
-    @InjectMocks
-    private GameController gameController;
-
+    @Autowired
     private WebTestClient webTestClient;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        this.webTestClient = WebTestClient.bindToController(gameController).build();
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     public void testMakeMove() {
         String gameId = "game123";
         MoveRequest moveRequest = new MoveRequest(PlayerAction.HIT, 100);
+
         Game mockGame = new Game();
+        mockGame.setID(gameId);
+        mockGame.setGameState(GameState.ONGOING);
+        mockGame.setDealerScore(10);
+        mockGame.setDealerHand(List.of("2H", "3D"));
 
         when(gameService.makeMove(anyString(), any(PlayerAction.class), anyInt())).thenReturn(Mono.just(mockGame));
 
@@ -52,6 +60,13 @@ public class GameControllerTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(Game.class)
-                .isEqualTo(mockGame);
+                .consumeWith(response -> {
+                    Game responseBody = response.getResponseBody();
+                    assertNotNull(responseBody);
+                    assertEquals(mockGame.getID(), responseBody.getID());
+                    assertEquals(mockGame.getGameState(), responseBody.getGameState());
+                    assertEquals(mockGame.getDealerScore(), responseBody.getDealerScore());
+                    assertEquals(mockGame.getDealerHand(), responseBody.getDealerHand());
+                });
     }
 }
