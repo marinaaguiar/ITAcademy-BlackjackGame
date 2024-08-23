@@ -1,10 +1,11 @@
 package cat.itacademy.s05.t01.n01.blackjack_game.service;
 
+import cat.itacademy.s05.t01.n01.blackjack_game.exception.DeckEmptyException;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.Game;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerState;
 import cat.itacademy.s05.t01.n01.blackjack_game.repository.GameRepository;
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.GameState;
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.GameState;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,19 +18,60 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-public class GameActionServiceTest {
+public class GameActionInteractorTest {
 
     @Mock
     private GameRepository gameRepository;
 
     @InjectMocks
-    private GameActionService gameActionService;
+    private GameActionInteractor gameActionInteractor;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    public void testInitializeGame() {
+        Game game = new Game();
+
+        gameActionInteractor.initializeGame(game);
+
+        assertNotNull(game.getDeck(), "The deck should not be null");
+        assertEquals(312, game.getDeck().size(), "The deck should contain 312 cards (6 decks * 52 cards each)");
+
+        boolean allCardsValid = game.getDeck().stream()
+                .allMatch(card -> card.matches("^(10|[2-9TJQKA])[CDHS]$"));
+
+        assertTrue(allCardsValid, "All cards in the deck should be valid card representations");
+    }
+
+    @Test
+    public void testDealCard_Success() {
+        Game game = new Game();
+        game.setDeck(new ArrayList<>(List.of("9C", "2D", "5H")));
+
+        Mono<String> result = gameActionInteractor.dealCard(game);
+
+        StepVerifier.create(result)
+                .expectNext("9C")  // The first card in the deck should be "9C"
+                .verifyComplete();
+        assertEquals(2, game.getDeck().size(), "The deck should have 2 cards left after dealing one card");
+    }
+
+    @Test
+    public void testDealCard_EmptyDeck() {
+        Game game = new Game();
+        game.setDeck(new ArrayList<>());  // Empty deck
+
+        Mono<String> result = gameActionInteractor.dealCard(game);
+
+        StepVerifier.create(result)
+                .expectError(DeckEmptyException.class)
+                .verify();
     }
 
     @Test
@@ -51,10 +93,9 @@ public class GameActionServiceTest {
         game.setPlayersState(new ArrayList<>(List.of(playerState)));
 
         when(gameRepository.findById(gameId)).thenReturn(Mono.just(game));
-
         when(gameRepository.save(game)).thenReturn(Mono.just(game));
 
-        Mono<Game> result = gameActionService.hit(gameId, playerId);
+        Mono<Game> result = gameActionInteractor.hit(gameId, playerId);
 
         StepVerifier.create(result)
                 .expectNextMatches(updatedGame -> {
@@ -87,13 +128,10 @@ public class GameActionServiceTest {
 
         game.setPlayersState(new ArrayList<>(List.of(playerState)));
 
-        // Mock the repository to return the game when findById is called
         when(gameRepository.findById(gameId)).thenReturn(Mono.just(game));
-
-        // Mock the repository to save the updated game state
         when(gameRepository.save(game)).thenReturn(Mono.just(game));
 
-        Mono<Game> result = gameActionService.stand(gameId, playerId);
+        Mono<Game> result = gameActionInteractor.stand(gameId, playerId);
 
         StepVerifier.create(result)
                 .expectNextMatches(updatedGame -> {
@@ -128,13 +166,9 @@ public class GameActionServiceTest {
         // Player will draw a 10, resulting in a score of 21
         game.setDeck(new LinkedList<>(List.of("10S")));
 
-        // Mock the repository to return the game when findById is called
         when(gameRepository.findById(gameId)).thenReturn(Mono.just(game));
-
-        // Mock the repository to save the updated game state
         when(gameRepository.save(game)).thenReturn(Mono.just(game));
-
-        Mono<Game> result = gameActionService.doubleDown(gameId, playerId, amountBet);
+        Mono<Game> result = gameActionInteractor.doubleDown(gameId, playerId, amountBet);
 
         StepVerifier.create(result)
                 .expectNextMatches(updatedGame -> {
@@ -153,7 +187,6 @@ public class GameActionServiceTest {
         int playerId = 1;
         int amountBet = 50;
 
-        // Setup the initial state of the game
         Game game = new Game();
         game.setID(gameId);
         game.setGameState(GameState.ONGOING);
@@ -168,13 +201,9 @@ public class GameActionServiceTest {
         // Player will draw a 6, resulting in a score of 23 (bust)
         game.setDeck(new LinkedList<>(List.of("6S")));
 
-        // Mock the repository to return the game when findById is called
         when(gameRepository.findById(gameId)).thenReturn(Mono.just(game));
-
-        // Mock the repository to save the updated game state
         when(gameRepository.save(game)).thenReturn(Mono.just(game));
-
-        Mono<Game> result = gameActionService.doubleDown(gameId, playerId, amountBet);
+        Mono<Game> result = gameActionInteractor.doubleDown(gameId, playerId, amountBet);
 
         StepVerifier.create(result)
                 .expectNextMatches(updatedGame -> {
@@ -213,13 +242,9 @@ public class GameActionServiceTest {
 
         game.setPlayersState(new ArrayList<>(List.of(playerState1, playerState2)));
 
-        // Mock the repository to return the game when findById is called
         when(gameRepository.findById(gameId)).thenReturn(Mono.just(game));
-
-        // Mock the repository to save the updated game state
         when(gameRepository.save(game)).thenReturn(Mono.just(game));
-
-        Mono<Game> result = gameActionService.surrender(gameId, playerId);
+        Mono<Game> result = gameActionInteractor.surrender(gameId, playerId);
 
         StepVerifier.create(result)
                 .expectNextMatches(updatedGame -> {
@@ -249,10 +274,8 @@ public class GameActionServiceTest {
         playerState.setAction(PlayerAction.PLAYING);
 
         game.setPlayersState(new ArrayList<>(List.of(playerState)));
-
         when(gameRepository.save(game)).thenReturn(Mono.just(game));
-
-        Mono<Game> result = gameActionService.finishGame(game);
+        Mono<Game> result = gameActionInteractor.finishGame(game);
 
         StepVerifier.create(result)
                 .expectNextMatches(updatedGame -> {
@@ -279,10 +302,8 @@ public class GameActionServiceTest {
         playerState.setAction(PlayerAction.PLAYING);
 
         game.setPlayersState(new ArrayList<>(List.of(playerState)));
-
         when(gameRepository.save(game)).thenReturn(Mono.just(game));
-
-        Mono<Game> result = gameActionService.finishGame(game);
+        Mono<Game> result = gameActionInteractor.finishGame(game);
 
         StepVerifier.create(result)
                 .expectNextMatches(updatedGame -> {

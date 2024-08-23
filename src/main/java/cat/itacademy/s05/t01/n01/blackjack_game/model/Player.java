@@ -16,6 +16,11 @@ public class Player {
     private int totalWins;
     private int totalLosses;
 
+    public Player(String name, int score) {
+        this.name = name;
+        this.score = score;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -24,11 +29,19 @@ public class Player {
         this.score = score;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public int getScore() {
         return score;
     }
 
     public int getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 }

@@ -1,9 +1,6 @@
 package cat.itacademy.s05.t01.n01.blackjack_game.model;
 
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 public class PlayerState {

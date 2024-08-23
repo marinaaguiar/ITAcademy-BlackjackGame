@@ -8,8 +8,8 @@ import cat.itacademy.s05.t01.n01.blackjack_game.model.Game;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerState;
 import cat.itacademy.s05.t01.n01.blackjack_game.repository.GameRepository;
 import cat.itacademy.s05.t01.n01.blackjack_game.utils.CardUtils;
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.GameState;
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.GameState;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -17,12 +17,12 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Service
-public class GameActionService {
+public class GameActionInteractor {
 
     private final GameRepository gameRepository;
 
     @Autowired
-    public GameActionService(GameRepository gameRepository) {
+    public GameActionInteractor(GameRepository gameRepository) {
         this.gameRepository = gameRepository;
     }
 

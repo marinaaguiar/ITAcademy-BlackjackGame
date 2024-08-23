@@ -2,15 +2,12 @@ package cat.itacademy.s05.t01.n01.blackjack_game.controller;
 
 import cat.itacademy.s05.t01.n01.blackjack_game.model.Game;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.MoveRequest;
-import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerState;
 import cat.itacademy.s05.t01.n01.blackjack_game.service.GameService;
 
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.GameState;
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.GameState;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;

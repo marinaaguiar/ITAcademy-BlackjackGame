@@ -8,8 +8,8 @@ import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerState;
 import cat.itacademy.s05.t01.n01.blackjack_game.repository.GameRepository;
 import cat.itacademy.s05.t01.n01.blackjack_game.repository.PlayerRepository;
 import cat.itacademy.s05.t01.n01.blackjack_game.utils.CardUtils;
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.GameState;
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.GameState;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerAction;
 import cat.itacademy.s05.t01.n01.blackjack_game.exception.GameNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,23 +28,21 @@ public class GameManager implements GameService {
 
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
-    private final GameActionService gameActionService;
+    private final GameActionInteractor gameActionInteractor;
 
     @Autowired
     public GameManager(
             GameRepository gameRepository,
             PlayerRepository playerRepository,
-            GameActionService gameActionService) {
+            GameActionInteractor gameActionInteractor) {
         this.gameRepository = gameRepository;
         this.playerRepository = playerRepository;
-        this.gameActionService = gameActionService;
+        this.gameActionInteractor = gameActionInteractor;
     }
 
     @Override
     public Mono<Game> createSinglePlayerGame(String playerName) {
-        Player player = new Player();
-        player.setName(playerName);
-        player.setScore(0);
+        Player player = new Player(playerName, 0);
 
         return playerRepository.save(player)
                 .flatMap(savedPlayer -> {
@@ -60,7 +58,7 @@ public class GameManager implements GameService {
                     game.setDealerHand(new ArrayList<>());
                     game.setDealerScore(0);
 
-                    gameActionService.initializeGame(game); // Initialize with 6 decks
+                    gameActionInteractor.initializeGame(game); // Initialize with 6 decks
 
                     return gameRepository.save(game);
                 });
@@ -87,13 +85,13 @@ public class GameManager implements GameService {
                     game.setDealerHand(new ArrayList<>());
                     game.setDealerScore(0);
 
-                    gameActionService.initializeGame(game); // Initialize with 6 decks
+                    gameActionInteractor.initializeGame(game); // Initialize with 6 decks
 
                     return Flux.fromIterable(playerStates)
-                            .flatMap(playerState -> gameActionService.dealCard(game)
+                            .flatMap(playerState -> gameActionInteractor.dealCard(game)
                                     .flatMap(card1 -> {
                                         playerState.getHand().add(card1);
-                                        return gameActionService.dealCard(game);
+                                        return gameActionInteractor.dealCard(game);
                                     })
                                     .doOnNext(card2 -> {
                                         playerState.getHand().add(card2);
@@ -101,27 +99,6 @@ public class GameManager implements GameService {
                                     }))
                             .then(Mono.just(game))
                             .flatMap(gameRepository::save);
-                });
-    }
-
-    public Mono<Game> dealInitialCards(Game game) {
-        return Flux.fromIterable(game.getPlayerStates())
-                .flatMap(playerState -> gameActionService.dealCard(game)
-                        .flatMap(card1 -> {
-                            playerState.getHand().add(card1);
-                            return gameActionService.dealCard(game).map(card2 -> {
-                                playerState.getHand().add(card2);
-                                return playerState;
-                            });
-                        })
-                )
-                .collectList()
-                .map(updatedStates -> {
-                    game.setPlayerStates(updatedStates);
-                    game.getPlayerStates().forEach(state ->
-                            state.setScore(CardUtils.calculateHandValue(state.getHand()))
-                    );
-                    return game;
                 });
     }
 
@@ -143,16 +120,16 @@ public class GameManager implements GameService {
 
                     switch (playerAction) {
                         case HIT:
-                            actionResult = gameActionService.hit(game.getID(), playerState.getPlayerId());
+                            actionResult = gameActionInteractor.hit(game.getID(), playerState.getPlayerId());
                             break;
                         case STANDING:
-                            actionResult = gameActionService.stand(game.getID(), playerState.getPlayerId());
+                            actionResult = gameActionInteractor.stand(game.getID(), playerState.getPlayerId());
                             break;
                         case DOUBLED_DOWN:
-                            actionResult = gameActionService.doubleDown(game.getID(), playerState.getPlayerId(), amountBet);
+                            actionResult = gameActionInteractor.doubleDown(game.getID(), playerState.getPlayerId(), amountBet);
                             break;
                         case SURRENDERED:
-                            actionResult = gameActionService.surrender(game.getID(), playerState.getPlayerId());
+                            actionResult = gameActionInteractor.surrender(game.getID(), playerState.getPlayerId());
                             break;
                     }
 
@@ -189,8 +166,12 @@ public class GameManager implements GameService {
 
     @Override
     public Mono<Void> deleteGame(String id) {
-        return gameRepository.findById(id)
-                .flatMap(game -> gameRepository.delete(game))
+        Mono<Void> gameDeletedSuccessfully = gameRepository.findById(id)
+                .flatMap(game -> gameRepository.delete(game)
+                        .doOnSuccess(unused -> System.out.println("Game deleted successfully"))
+                        .doOnError(e -> System.err.println("Error during deletion: " + e.getMessage()))
+                )
                 .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + id)));
+        return gameDeletedSuccessfully;
     }
 }

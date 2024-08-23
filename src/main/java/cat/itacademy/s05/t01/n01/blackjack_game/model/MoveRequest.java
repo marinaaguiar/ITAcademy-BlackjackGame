@@ -1,7 +1,5 @@
 package cat.itacademy.s05.t01.n01.blackjack_game.model;
 
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
-
 public class MoveRequest {
     private PlayerAction playerAction;
     private int amountBet;

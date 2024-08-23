@@ -1,6 +1,5 @@
 package cat.itacademy.s05.t01.n01.blackjack_game.model;
 
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.GameState;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;

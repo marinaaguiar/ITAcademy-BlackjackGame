@@ -2,7 +2,7 @@ package cat.itacademy.s05.t01.n01.blackjack_game.service;
 
 import cat.itacademy.s05.t01.n01.blackjack_game.model.Game;
 import cat.itacademy.s05.t01.n01.blackjack_game.model.Player;
-import cat.itacademy.s05.t01.n01.blackjack_game.utils.PlayerAction;
+import cat.itacademy.s05.t01.n01.blackjack_game.model.PlayerAction;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
