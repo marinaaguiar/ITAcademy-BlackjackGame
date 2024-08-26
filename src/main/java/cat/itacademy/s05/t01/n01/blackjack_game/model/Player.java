@@ -3,6 +3,8 @@ package cat.itacademy.s05.t01.n01.blackjack_game.model;
 import jakarta.persistence.Entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
+
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -43,5 +45,21 @@ public class Player {
 
     public String getName() {
         return name;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Player player = (Player) o;
+        return id == player.id &&
+                score == player.score &&
+                Objects.equals(name, player.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, score);
     }
 }

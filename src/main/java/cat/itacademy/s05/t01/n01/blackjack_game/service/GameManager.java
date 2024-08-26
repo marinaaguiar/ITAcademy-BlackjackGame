@@ -145,7 +145,11 @@ public class GameManager implements GameService {
     @Override
     public Flux<Player> getPlayerRankings() {
         return playerRepository.findAll()
-                .sort((p1, p2) -> Integer.compare(p2.getScore(), p1.getScore()));
+                .sort((p1, p2) -> {
+                    System.out.println("Comparing scores: " + p1.getScore() + " and " + p2.getScore());
+                    return Integer.compare(p2.getScore(), p1.getScore());
+                })
+                .doOnError(e -> System.err.println("Error fetching player rankings: " + e.getMessage()));
     }
 
     @Override
