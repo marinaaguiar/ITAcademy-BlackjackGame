@@ -32,6 +32,7 @@ public class GameController {
     @PostMapping("/new/multiplayer")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Game> startNewGame(@RequestBody List<String> playerIds) {
+        System.out.println("Received player IDs: " + playerIds);
         return gameService.startNewGame(playerIds);
     }
 
@@ -50,7 +51,8 @@ public class GameController {
     @DeleteMapping("/{id}/delete")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteGame(@PathVariable String id) {
+        System.out.println("Delete request received for game ID: " + id);
         return gameService.deleteGame(id)
-                .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + id)));
+                .doOnSuccess(unused -> System.out.println("Successfully deleted game with ID: " + id));
     }
 }

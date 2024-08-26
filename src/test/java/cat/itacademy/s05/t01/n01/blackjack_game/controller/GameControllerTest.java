@@ -38,6 +38,91 @@ public class GameControllerTest {
     }
 
     @Test
+    public void testCreateSinglePlayerGame() {
+        String playerName = "Player1";
+        Game game = new Game();
+
+        when(gameService.createSinglePlayerGame(anyString())).thenReturn(Mono.just(game));
+
+        webTestClient.post().uri("/game/new")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("\"Player1\"")
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(Game.class)
+                .consumeWith(response -> {
+                    Game responseBody = response.getResponseBody();
+                    assertNotNull(responseBody);
+                    assertEquals(game.getID(), responseBody.getID());
+                    assertEquals(game.getGameState(), responseBody.getGameState());
+                    assertEquals(game.getPlayerStates(), responseBody.getPlayersState());
+                    assertEquals(game.getDeck(), responseBody.getDeck());
+                    assertEquals(game.getDealerHand(), responseBody.getDealerHand());
+                    assertEquals(game.getDealerScore(), responseBody.getDealerScore());
+                });
+        ;
+    }
+
+    @Test
+    public void testStartNewGame() {
+        List<String> playerIds = List.of("1", "2");
+        Game game = new Game();
+
+        when(gameService.startNewGame(playerIds)).thenReturn(Mono.just(game));
+
+        webTestClient.post().uri("/game/new/multiplayer")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(playerIds)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(Game.class)
+                .consumeWith(response -> {
+                    Game responseBody = response.getResponseBody();
+                    assertNotNull(responseBody);
+                    assertEquals(game.getID(), responseBody.getID());
+                    assertEquals(game.getGameState(), responseBody.getGameState());
+                    assertEquals(game.getPlayerStates(), responseBody.getPlayersState());
+                    assertEquals(game.getDeck(), responseBody.getDeck());
+                    assertEquals(game.getDealerHand(), responseBody.getDealerHand());
+                    assertEquals(game.getDealerScore(), responseBody.getDealerScore());
+                });
+    }
+
+    @Test
+    public void testGetGameDetails() {
+        String gameId = "game123";
+        Game game = new Game();
+
+        when(gameService.getGameDetails(gameId)).thenReturn(Mono.just(game));
+
+        webTestClient.get().uri("/game/" + gameId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Game.class)
+                .consumeWith(response -> {
+                    Game responseBody = response.getResponseBody();
+                    assertNotNull(responseBody);
+                    assertEquals(game.getID(), responseBody.getID());
+                    assertEquals(game.getGameState(), responseBody.getGameState());
+                    assertEquals(game.getPlayerStates(), responseBody.getPlayersState());
+                    assertEquals(game.getDeck(), responseBody.getDeck());
+                    assertEquals(game.getDealerHand(), responseBody.getDealerHand());
+                    assertEquals(game.getDealerScore(), responseBody.getDealerScore());
+                });
+    }
+
+    @Test
+    public void testDeleteGame() {
+        String gameId = "game123";
+
+        when(gameService.deleteGame(gameId)).thenReturn(Mono.empty());
+
+        webTestClient.delete().uri("/game/" + gameId + "/delete")
+                .exchange()
+                .expectStatus().isNoContent(); // Expect 204 NO_CONTENT
+    }
+
+    @Test
     public void testMakeMove() {
         String gameId = "game123";
         MoveRequest moveRequest = new MoveRequest(PlayerAction.HIT, 100);

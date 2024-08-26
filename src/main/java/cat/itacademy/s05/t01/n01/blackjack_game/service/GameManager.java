@@ -166,12 +166,13 @@ public class GameManager implements GameService {
 
     @Override
     public Mono<Void> deleteGame(String id) {
-        Mono<Void> gameDeletedSuccessfully = gameRepository.findById(id)
-                .flatMap(game -> gameRepository.delete(game)
-                        .doOnSuccess(unused -> System.out.println("Game deleted successfully"))
-                        .doOnError(e -> System.err.println("Error during deletion: " + e.getMessage()))
-                )
+        return gameRepository.findById(id)
+                .flatMap(game -> {
+                    System.out.println("Found game: " + game.getID());
+                    return gameRepository.delete(game)
+                            .doOnSuccess(unused -> System.out.println("Game deleted successfully with ID: " + id))
+                            .doOnError(e -> System.err.println("Error during deletion: " + e.getMessage()));
+                })
                 .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + id)));
-        return gameDeletedSuccessfully;
     }
 }
