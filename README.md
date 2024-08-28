@@ -84,7 +84,7 @@ Ensure that you have the following installed:
   - Method: POST
   - Endpoint: /game/new
   - Description: Creates a new Blackjack game for a single player.
-  - Request Body: { "playerName": "John Doe" }
+  - Request Body: { "playerName": "Marina Aguiar" }
   - Response: 201 Created with game details.
 
 - Get Game Details
@@ -122,7 +122,7 @@ Ensure that you have the following installed:
   - Method: PUT
   - Endpoint: /player/{playerId}
   - Description: Changes the name of a player.
-  - Request Body: { "newName": "Jane Doe" }
+  - Request Body: { "newName": "Marina Aguiar" }
   - Response: 200 OK with updated player information.
   
 ### Database Configuration
