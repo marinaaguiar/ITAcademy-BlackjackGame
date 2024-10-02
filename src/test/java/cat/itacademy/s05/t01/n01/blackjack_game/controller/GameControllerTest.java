@@ -60,7 +60,6 @@ public class GameControllerTest {
                     assertEquals(game.getDealerHand(), responseBody.getDealerHand());
                     assertEquals(game.getDealerScore(), responseBody.getDealerScore());
                 });
-        ;
     }
 
     @Test
@@ -133,10 +132,10 @@ public class GameControllerTest {
         mockGame.setDealerScore(10);
         mockGame.setDealerHand(List.of("2H", "3D"));
 
-        when(gameService.makeMove(anyString(), anyString(),any(PlayerAction.class), anyInt())).thenReturn(Mono.just(mockGame));
+        when(gameService.makeMove(anyString(), anyString(), any(PlayerAction.class), anyInt())).thenReturn(Mono.just(mockGame));
 
         webTestClient.post()
-                .uri("/game/{id}/play/{playerId}", gameId)
+                .uri("/game/{id}/play", gameId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(moveRequest)
                 .exchange()
