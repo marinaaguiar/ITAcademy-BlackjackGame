@@ -45,7 +45,7 @@ public class GameActionInteractor {
                         return Mono.error(new GameAlreadyFinishedException());
                     }
 
-                    return Mono.justOrEmpty(game.getPlayerStates().stream()
+                    return Mono.justOrEmpty(game.getPlayersState().stream()
                                     .filter(ps -> ps.getPlayerId() == playerId)
                                     .findFirst())
                             .flatMap(playerState -> {
@@ -110,7 +110,7 @@ public class GameActionInteractor {
                         return Mono.error(new GameAlreadyFinishedException());
                     }
 
-                    return Mono.justOrEmpty(game.getPlayerStates().stream()
+                    return Mono.justOrEmpty(game.getPlayersState().stream()
                                     .filter(ps -> ps.getPlayerId() == playerId)
                                     .findFirst())
                             .flatMap(playerState -> {
@@ -143,7 +143,7 @@ public class GameActionInteractor {
                         return Mono.error(new GameAlreadyFinishedException());
                     }
 
-                    return Mono.justOrEmpty(game.getPlayerStates().stream()
+                    return Mono.justOrEmpty(game.getPlayersState().stream()
                                     .filter(ps -> ps.getPlayerId() == playerId)
                                     .findFirst())
                             .flatMap(playerState -> {
@@ -153,7 +153,7 @@ public class GameActionInteractor {
 
                                 playerState.setAction(PlayerAction.SURRENDERED);
 
-                                if (game.getPlayerStates().stream()
+                                if (game.getPlayersState().stream()
                                         .allMatch(ps -> ps.getAction() != PlayerAction.PLAYING)) {
                                     return finishGame(game);
                                 }

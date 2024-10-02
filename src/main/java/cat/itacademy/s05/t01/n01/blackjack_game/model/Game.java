@@ -9,71 +9,57 @@ public class Game {
 
     @Id
     private String id;
-    private List<Player> players;
     private List<PlayerState> playersState;
     private GameState gameState;
     private List<String> deck;
-    private String dealerId;
     private List<String> dealerHand;
     private int dealerScore;
 
-    public void setID(String id) {
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
         this.id = id;
     }
 
-    public void setPlayers(List<Player> playerList) {
-        this.players = playerList;
+    public List<PlayerState> getPlayersState() {
+        return playersState;
     }
 
-    public void setPlayerStates(List<PlayerState> playersState) {
+    public void setPlayersState(List<PlayerState> playersState) {
         this.playersState = playersState;
-    }
-
-    public void setGameState(GameState gameState) {
-        this.gameState = gameState;
-    }
-
-    public void setDeck(List<String> shuffledDeck) {
-        this.deck = shuffledDeck;
-    }
-
-    public void setDealerHand(List<String> dealerHand) {
-        this.dealerHand = dealerHand;
-    }
-
-    public void setDealerScore(int dealerScore) {
-        this.dealerScore = dealerScore;
     }
 
     public GameState getGameState() {
         return gameState;
     }
 
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
+    }
+
     public List<String> getDeck() {
         return deck;
     }
 
-    public List<PlayerState> getPlayerStates() {
-        return playersState;
-    }
-
-    public int getDealerScore() {
-        return dealerScore;
+    public void setDeck(List<String> deck) {
+        this.deck = deck;
     }
 
     public List<String> getDealerHand() {
         return dealerHand;
     }
 
-    public String getID() {
-        return id;
+    public void setDealerHand(List<String> dealerHand) {
+        this.dealerHand = dealerHand;
     }
 
-    public void setPlayersState(List<PlayerState> playerStates) {
-        this.playersState = playerStates;
+    public int getDealerScore() {
+        return dealerScore;
     }
 
-    public List<PlayerState> getPlayersState() {
-        return playersState;
+    public void setDealerScore(int dealerScore) {
+        this.dealerScore = dealerScore;
     }
 }

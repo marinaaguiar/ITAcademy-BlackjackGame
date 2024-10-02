@@ -47,14 +47,14 @@ public class GameManager implements GameService {
         return playerRepository.save(player)
                 .flatMap(savedPlayer -> {
                     Game game = new Game();
-                    game.setID(UUID.randomUUID().toString());
+                    game.setId(UUID.randomUUID().toString());
                     game.setGameState(GameState.ONGOING);
 
                     PlayerState playerState = new PlayerState(savedPlayer.getId());
                     playerState.setHand(new ArrayList<>());
                     playerState.setScore(0);
 
-                    game.setPlayerStates(new ArrayList<>(List.of(playerState)));
+                    game.setPlayersState(new ArrayList<>(List.of(playerState)));
                     game.setDealerHand(new ArrayList<>());
                     game.setDealerScore(0);
 
@@ -74,14 +74,14 @@ public class GameManager implements GameService {
                     }
 
                     Game game = new Game();
-                    game.setID(UUID.randomUUID().toString());
+                    game.setId(UUID.randomUUID().toString());
                     game.setGameState(GameState.ONGOING);
 
                     List<PlayerState> playerStates = players.stream()
                             .map(player -> new PlayerState(player.getId()))
                             .collect(Collectors.toList());
 
-                    game.setPlayerStates(new ArrayList<>(playerStates));
+                    game.setPlayersState(new ArrayList<>(playerStates));
                     game.setDealerHand(new ArrayList<>());
                     game.setDealerScore(0);
 
@@ -107,11 +107,11 @@ public class GameManager implements GameService {
         return gameRepository.findById(gameId)
                 .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + gameId)))
                 .flatMap(game -> {
-                    if (game.getPlayerStates() == null || game.getPlayerStates().isEmpty()) {
+                    if (game.getPlayersState() == null || game.getPlayersState().isEmpty()) {
                         return Mono.error(new IllegalStateException("No player states found for game id: " + gameId));
                     }
 
-                    PlayerState playerState = game.getPlayerStates().getFirst();
+                    PlayerState playerState = game.getPlayersState().getFirst();
                     if (playerState == null) {
                         return Mono.error(new IllegalStateException("Player state is null for game id: " + gameId));
                     }
@@ -120,16 +120,16 @@ public class GameManager implements GameService {
 
                     switch (playerAction) {
                         case HIT:
-                            actionResult = gameActionInteractor.hit(game.getID(), playerState.getPlayerId());
+                            actionResult = gameActionInteractor.hit(game.getId(), playerState.getPlayerId());
                             break;
                         case STANDING:
-                            actionResult = gameActionInteractor.stand(game.getID(), playerState.getPlayerId());
+                            actionResult = gameActionInteractor.stand(game.getId(), playerState.getPlayerId());
                             break;
                         case DOUBLED_DOWN:
-                            actionResult = gameActionInteractor.doubleDown(game.getID(), playerState.getPlayerId(), amountBet);
+                            actionResult = gameActionInteractor.doubleDown(game.getId(), playerState.getPlayerId(), amountBet);
                             break;
                         case SURRENDERED:
-                            actionResult = gameActionInteractor.surrender(game.getID(), playerState.getPlayerId());
+                            actionResult = gameActionInteractor.surrender(game.getId(), playerState.getPlayerId());
                             break;
                     }
 
@@ -172,7 +172,7 @@ public class GameManager implements GameService {
     public Mono<Void> deleteGame(String id) {
         return gameRepository.findById(id)
                 .flatMap(game -> {
-                    System.out.println("Found game: " + game.getID());
+                    System.out.println("Found game: " + game.getId());
                     return gameRepository.delete(game)
                             .doOnSuccess(unused -> System.out.println("Game deleted successfully with ID: " + id))
                             .doOnError(e -> System.err.println("Error during deletion: " + e.getMessage()));

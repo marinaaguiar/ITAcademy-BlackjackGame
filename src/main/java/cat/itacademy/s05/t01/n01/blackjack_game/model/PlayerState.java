@@ -8,7 +8,6 @@ public class PlayerState {
     private List<String> hand;
     private int score;
     private PlayerAction action;
-    private List<String> splitHand;
 
     public PlayerState(int playerId) {
         this.playerId = playerId;
