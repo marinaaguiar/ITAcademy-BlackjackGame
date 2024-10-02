@@ -46,13 +46,13 @@ public class GameManagerTest {
     public void testCreateSinglePlayerGame() {
         String playerName = "Player1";
         Player player = new Player(playerName, 0);
-        player.setId(1);
+        player.setId("1");
 
         when(playerRepository.save(any(Player.class))).thenReturn(Mono.just(player));
 
         when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> {
             Game game = invocation.getArgument(0);
-            game.setID(UUID.randomUUID().toString());
+            game.setId(UUID.randomUUID().toString());
             return Mono.just(game);
         });
 
@@ -61,10 +61,10 @@ public class GameManagerTest {
         StepVerifier.create(result)
                 .expectNextMatches(game -> {
                     return game.getGameState() == GameState.ONGOING
-                            && game.getPlayerStates().size() == 1
-                            && game.getPlayerStates().get(0).getPlayerId() == player.getId()
-                            && game.getPlayerStates().get(0).getHand().isEmpty()
-                            && game.getPlayerStates().get(0).getScore() == 0
+                            && game.getPlayersState().size() == 1
+                            && game.getPlayersState().get(0).getPlayerId() == player.getId()
+                            && game.getPlayersState().get(0).getPlayerHand().isEmpty()
+                            && game.getPlayersState().get(0).getScore() == 0
                             && game.getDealerHand().isEmpty()
                             && game.getDealerScore() == 0;
                 })
@@ -79,9 +79,9 @@ public class GameManagerTest {
     public void testStartNewGame_Success() {
         List<String> playerIds = List.of("1", "2");
         Player player1 = new Player("Player1", 0);
-        player1.setId(1);
+        player1.setId("1");
         Player player2 = new Player("Player2", 0);
-        player2.setId(2);
+        player2.setId("2");
 
         when(playerRepository.findAllById(playerIds)).thenReturn(Flux.just(player1, player2));
 
@@ -90,13 +90,13 @@ public class GameManagerTest {
         when(gameActionInteractor.dealCard(any(Game.class)))
                 .thenAnswer(invocation -> {
                     Game game = invocation.getArgument(0);
-                    List<PlayerState> playerStates = game.getPlayerStates();
+                    List<PlayerState> playerStates = game.getPlayersState();
 
-                    if (playerStates.get(0).getHand().isEmpty()) {
+                    if (playerStates.get(0).getPlayerHand().isEmpty()) {
                         return Mono.just("5H"); // First card to player 1
-                    } else if (playerStates.get(0).getHand().size() == 1) {
+                    } else if (playerStates.get(0).getPlayerHand().size() == 1) {
                         return Mono.just("6D"); // Second card to player 1
-                    } else if (playerStates.get(1).getHand().isEmpty()) {
+                    } else if (playerStates.get(1).getPlayerHand().isEmpty()) {
                         return Mono.just("7S"); // First card to player 2
                     } else {
                         return Mono.just("8C"); // Second card to player 2
@@ -105,7 +105,7 @@ public class GameManagerTest {
 
         when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> {
             Game game = invocation.getArgument(0);
-            game.setID(UUID.randomUUID().toString()); // Simulate game ID assignment
+            game.setId(UUID.randomUUID().toString()); // Simulate game ID assignment
             return Mono.just(game);
         });
 
@@ -113,9 +113,9 @@ public class GameManagerTest {
 
         StepVerifier.create(result)
                 .expectNextMatches(game -> {
-                    List<PlayerState> playerStates = game.getPlayerStates();
-                    boolean player1HasTwoCards = playerStates.get(0).getHand().size() == 2;
-                    boolean player2HasTwoCards = playerStates.get(1).getHand().size() == 2;
+                    List<PlayerState> playerStates = game.getPlayersState();
+                    boolean player1HasTwoCards = playerStates.get(0).getPlayerHand().size() == 2;
+                    boolean player2HasTwoCards = playerStates.get(1).getPlayerHand().size() == 2;
 
                     boolean correctScores = playerStates.get(0).getScore() == 11 &&  // 5H + 6D
                             playerStates.get(1).getScore() == 15;  // 7S + 8C
@@ -138,7 +138,7 @@ public class GameManagerTest {
     public void testStartNewGame_PlayerNotFound() {
         List<String> playerIds = List.of("1", "2");
         Player player1 = new Player("Player1", 0);
-        player1.setId(1);
+        player1.setId("1");
 
         when(playerRepository.findAllById(playerIds)).thenReturn(Flux.just(player1)); // Only one player found
 
@@ -203,7 +203,7 @@ public class GameManagerTest {
         String gameId = "game123";
 
         Game game = new Game();
-        game.setID(gameId);
+        game.setId(gameId);
 
         when(gameRepository.findById(gameId)).thenReturn(Mono.just(game));
 
@@ -231,7 +231,7 @@ public class GameManagerTest {
     public void testDeleteGame_Success() {
         String gameId = "game123";
         Game game = new Game();
-        game.setID(gameId);
+        game.setId(gameId);
 
         when(gameRepository.findById(gameId)).thenReturn(Mono.just(game));
         when(gameRepository.delete(game)).thenReturn(Mono.empty());

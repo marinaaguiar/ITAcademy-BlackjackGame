@@ -53,9 +53,9 @@ public class GameControllerTest {
                 .consumeWith(response -> {
                     Game responseBody = response.getResponseBody();
                     assertNotNull(responseBody);
-                    assertEquals(game.getID(), responseBody.getID());
+                    assertEquals(game.getId(), responseBody.getId());
                     assertEquals(game.getGameState(), responseBody.getGameState());
-                    assertEquals(game.getPlayerStates(), responseBody.getPlayersState());
+                    assertEquals(game.getPlayersState(), responseBody.getPlayersState());
                     assertEquals(game.getDeck(), responseBody.getDeck());
                     assertEquals(game.getDealerHand(), responseBody.getDealerHand());
                     assertEquals(game.getDealerScore(), responseBody.getDealerScore());
@@ -79,9 +79,9 @@ public class GameControllerTest {
                 .consumeWith(response -> {
                     Game responseBody = response.getResponseBody();
                     assertNotNull(responseBody);
-                    assertEquals(game.getID(), responseBody.getID());
+                    assertEquals(game.getId(), responseBody.getId());
                     assertEquals(game.getGameState(), responseBody.getGameState());
-                    assertEquals(game.getPlayerStates(), responseBody.getPlayersState());
+                    assertEquals(game.getPlayersState(), responseBody.getPlayersState());
                     assertEquals(game.getDeck(), responseBody.getDeck());
                     assertEquals(game.getDealerHand(), responseBody.getDealerHand());
                     assertEquals(game.getDealerScore(), responseBody.getDealerScore());
@@ -102,9 +102,9 @@ public class GameControllerTest {
                 .consumeWith(response -> {
                     Game responseBody = response.getResponseBody();
                     assertNotNull(responseBody);
-                    assertEquals(game.getID(), responseBody.getID());
+                    assertEquals(game.getId(), responseBody.getId());
                     assertEquals(game.getGameState(), responseBody.getGameState());
-                    assertEquals(game.getPlayerStates(), responseBody.getPlayersState());
+                    assertEquals(game.getPlayersState(), responseBody.getPlayersState());
                     assertEquals(game.getDeck(), responseBody.getDeck());
                     assertEquals(game.getDealerHand(), responseBody.getDealerHand());
                     assertEquals(game.getDealerScore(), responseBody.getDealerScore());
@@ -128,15 +128,15 @@ public class GameControllerTest {
         MoveRequest moveRequest = new MoveRequest(PlayerAction.HIT, 100);
 
         Game mockGame = new Game();
-        mockGame.setID(gameId);
+        mockGame.setId(gameId);
         mockGame.setGameState(GameState.ONGOING);
         mockGame.setDealerScore(10);
         mockGame.setDealerHand(List.of("2H", "3D"));
 
-        when(gameService.makeMove(anyString(), any(PlayerAction.class), anyInt())).thenReturn(Mono.just(mockGame));
+        when(gameService.makeMove(anyString(), anyString(),any(PlayerAction.class), anyInt())).thenReturn(Mono.just(mockGame));
 
         webTestClient.post()
-                .uri("/game/{id}/play", gameId)
+                .uri("/game/{id}/play/{playerId}", gameId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(moveRequest)
                 .exchange()
@@ -145,7 +145,7 @@ public class GameControllerTest {
                 .consumeWith(response -> {
                     Game responseBody = response.getResponseBody();
                     assertNotNull(responseBody);
-                    assertEquals(mockGame.getID(), responseBody.getID());
+                    assertEquals(mockGame.getId(), responseBody.getId());
                     assertEquals(mockGame.getGameState(), responseBody.getGameState());
                     assertEquals(mockGame.getDealerScore(), responseBody.getDealerScore());
                     assertEquals(mockGame.getDealerHand(), responseBody.getDealerHand());

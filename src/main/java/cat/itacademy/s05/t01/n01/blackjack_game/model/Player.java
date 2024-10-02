@@ -12,7 +12,7 @@ import java.util.UUID;
 public class Player {
 
     @Id
-    private int id;
+    private String id;
     private String name;
     private int score;
     private int totalWins;
@@ -31,7 +31,7 @@ public class Player {
         this.score = score;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -39,7 +39,7 @@ public class Player {
         return score;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 

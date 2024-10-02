@@ -58,7 +58,7 @@ public class GameManager implements GameService {
                     game.setDealerHand(new ArrayList<>());
                     game.setDealerScore(0);
 
-                    gameActionInteractor.initializeGame(game); // Initialize with 6 decks
+                    gameActionInteractor.initializeGame(game);
 
                     return gameRepository.save(game);
                 });
@@ -78,32 +78,60 @@ public class GameManager implements GameService {
                     game.setGameState(GameState.ONGOING);
 
                     List<PlayerState> playerStates = players.stream()
-                            .map(player -> new PlayerState(player.getId()))
+                            .map(player -> {
+                                PlayerState playerState = new PlayerState(player.getId());
+                                playerState.setHand(new ArrayList<>());
+                                playerState.setScore(0);
+                                return playerState;
+                            })
                             .collect(Collectors.toList());
 
                     game.setPlayersState(new ArrayList<>(playerStates));
                     game.setDealerHand(new ArrayList<>());
                     game.setDealerScore(0);
 
-                    gameActionInteractor.initializeGame(game); // Initialize with 6 decks
+                    gameActionInteractor.initializeGame(game);
 
-                    return Flux.fromIterable(playerStates)
-                            .flatMap(playerState -> gameActionInteractor.dealCard(game)
-                                    .flatMap(card1 -> {
-                                        playerState.getHand().add(card1);
-                                        return gameActionInteractor.dealCard(game);
-                                    })
-                                    .doOnNext(card2 -> {
-                                        playerState.getHand().add(card2);
-                                        playerState.setScore(CardUtils.calculateHandValue(playerState.getHand()));
-                                    }))
-                            .then(Mono.just(game))
+                    Mono<Game> playerCardDealing = Flux.fromIterable(playerStates)
+                            .flatMap(playerState ->
+                                    gameActionInteractor.dealCard(game)
+                                            .flatMap(card1 -> {
+                                                System.out.println("Dealt first card to player " + playerState.getPlayerId() + ": " + card1);
+                                                playerState.getPlayerHand().add(card1);
+                                                playerState.setScore(CardUtils.calculateHandValue(playerState.getPlayerHand()));
+                                                return gameActionInteractor.dealCard(game);
+                                            })
+                                            .flatMap(card2 -> {
+                                                System.out.println("Dealt second card to player " + playerState.getPlayerId() + ": " + card2);
+                                                playerState.getPlayerHand().add(card2);
+                                                playerState.setScore(CardUtils.calculateHandValue(playerState.getPlayerHand()));
+                                                return Mono.just(playerState);
+                                            })
+                            )
+                            .then(Mono.just(game));
+
+                    Mono<Game> dealerCardDealing = gameActionInteractor.dealCard(game)
+                            .flatMap(card1 -> {
+                                System.out.println("Dealt first card to dealer: " + card1);
+                                game.getDealerHand().add(card1);
+                                game.setDealerScore(CardUtils.calculateHandValue(game.getDealerHand()));
+                                return gameActionInteractor.dealCard(game);
+                            })
+                            .flatMap(card2 -> {
+                                System.out.println("Dealt second card to dealer: " + card2);
+                                game.getDealerHand().add(card2);
+                                game.setDealerScore(CardUtils.calculateHandValue(game.getDealerHand()));
+                                return Mono.just(game);
+                            });
+
+                    return playerCardDealing
+                            .then(dealerCardDealing)
                             .flatMap(gameRepository::save);
                 });
     }
 
     @Override
-    public Mono<Game> makeMove(String gameId, PlayerAction playerAction, int amountBet) {
+    public Mono<Game> makeMove(String gameId, String playerId, PlayerAction playerAction, int amountBet) {
         return gameRepository.findById(gameId)
                 .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + gameId)))
                 .flatMap(game -> {
@@ -111,10 +139,17 @@ public class GameManager implements GameService {
                         return Mono.error(new IllegalStateException("No player states found for game id: " + gameId));
                     }
 
-                    PlayerState playerState = game.getPlayersState().getFirst();
-                    if (playerState == null) {
-                        return Mono.error(new IllegalStateException("Player state is null for game id: " + gameId));
-                    }
+                    System.out.println("Player IDs in the game: " +
+                            game.getPlayersState().stream().map(PlayerState::getPlayerId).collect(Collectors.toList()));
+
+                    System.out.println("Incoming playerId (type: " + playerId.getClass().getName() + "): " + playerId);
+
+                    PlayerState playerState = game.getPlayersState().stream()
+                            .filter(ps -> ps.getPlayerId().equals(playerId))
+                            .findFirst()
+                            .orElseThrow(() -> new PlayerNotFoundException());
+
+                    System.out.println("Found player with ID: " + playerState.getPlayerId());
 
                     Mono<Game> actionResult = Mono.error(new InvalidMoveException("Invalid move type: " + playerAction));
 

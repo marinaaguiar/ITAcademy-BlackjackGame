@@ -77,10 +77,10 @@ public class GameActionInteractorTest {
     @Test
     public void testHit() {
         String gameId = "game123";
-        int playerId = 1;
+        String playerId = "1";
 
         Game game = new Game();
-        game.setID(gameId);
+        game.setId(gameId);
         game.setGameState(GameState.ONGOING);
         game.setDeck(new ArrayList<>(List.of("9C", "2D", "5H")));
 
@@ -111,10 +111,10 @@ public class GameActionInteractorTest {
     @Test
     public void testStand() {
         String gameId = "game123";
-        int playerId = 1;
+        String playerId = "1";
 
         Game game = new Game();
-        game.setID(gameId);
+        game.setId(gameId);
         game.setGameState(GameState.ONGOING);
 
         game.setDeck(new ArrayList<>(List.of("9C", "2D", "5H")));
@@ -149,11 +149,11 @@ public class GameActionInteractorTest {
     @Test
     public void testDoubleDown_PlayerDoesNotBust() {
         String gameId = "game123";
-        int playerId = 1;
+        String playerId = "1";
         int amountBet = 50;
 
         Game game = new Game();
-        game.setID(gameId);
+        game.setId(gameId);
         game.setGameState(GameState.ONGOING);
 
         PlayerState playerState = new PlayerState(playerId);
@@ -176,7 +176,7 @@ public class GameActionInteractorTest {
 
                     return updatedPlayerState.getAction() == PlayerAction.DOUBLED_DOWN
                             && updatedPlayerState.getScore() == 21
-                            && updatedPlayerState.getHand().contains("10S");
+                            && updatedPlayerState.getPlayerHand().contains("10S");
                 })
                 .verifyComplete();
     }
@@ -184,11 +184,11 @@ public class GameActionInteractorTest {
     @Test
     public void testDoubleDown_PlayerBusts() {
         String gameId = "game123";
-        int playerId = 1;
+        String playerId = "1";
         int amountBet = 50;
 
         Game game = new Game();
-        game.setID(gameId);
+        game.setId(gameId);
         game.setGameState(GameState.ONGOING);
 
         PlayerState playerState = new PlayerState(playerId);
@@ -211,7 +211,7 @@ public class GameActionInteractorTest {
 
                     return updatedPlayerState.getAction() == PlayerAction.BUSTED
                             && updatedPlayerState.getScore() == 23 // 17 + 6 = 23
-                            && updatedPlayerState.getHand().contains("6S");
+                            && updatedPlayerState.getPlayerHand().contains("6S");
                 })
                 .verifyComplete();
     }
@@ -219,10 +219,10 @@ public class GameActionInteractorTest {
     @Test
     public void testSurrender() {
         String gameId = "game123";
-        int playerId = 1;
+        String playerId = "1";
 
         Game game = new Game();
-        game.setID(gameId);
+        game.setId(gameId);
         game.setGameState(GameState.ONGOING);
 
         game.setDeck(new ArrayList<>());
@@ -234,8 +234,8 @@ public class GameActionInteractorTest {
         playerState1.setScore(11);
         playerState1.setAction(PlayerAction.PLAYING);
 
-        PlayerState playerState2 = new PlayerState(2);
-        playerState2.setPlayerId(2);
+        PlayerState playerState2 = new PlayerState("2");
+        playerState2.setPlayerId("2");
         playerState2.setHand(new ArrayList<>(List.of("7H", "8D")));
         playerState2.setScore(15);
         playerState2.setAction(PlayerAction.SURRENDERED);
@@ -261,14 +261,14 @@ public class GameActionInteractorTest {
     @Test
     public void testFinishGame_PlayerWins() {
         Game game = new Game();
-        game.setID("game123");
+        game.setId("game123");
         game.setGameState(GameState.ONGOING);
 
         game.setDeck(new LinkedList<>(List.of("7C"))); // Dealer will draw a 7
         game.setDealerHand(new ArrayList<>(List.of("10H"))); // Dealer starts with a 10
 
-        PlayerState playerState = new PlayerState(1);
-        playerState.setPlayerId(1);
+        PlayerState playerState = new PlayerState("1");
+        playerState.setPlayerId("1");
         playerState.setHand(new ArrayList<>(List.of("9H", "10D"))); // Player score is 19
         playerState.setScore(19);
         playerState.setAction(PlayerAction.PLAYING);
@@ -289,14 +289,14 @@ public class GameActionInteractorTest {
     @Test
     public void testFinishGame_PlayerLoses() {
         Game game = new Game();
-        game.setID("game123");
+        game.setId("game123");
         game.setGameState(GameState.ONGOING);
 
         game.setDeck(new LinkedList<>(List.of("7C"))); // Dealer will draw a 7
         game.setDealerHand(new ArrayList<>(List.of("10H"))); // Dealer starts with a 10
 
-        PlayerState playerState = new PlayerState(1);
-        playerState.setPlayerId(1);
+        PlayerState playerState = new PlayerState("1");
+        playerState.setPlayerId("1");
         playerState.setHand(new ArrayList<>(List.of("5H", "6D"))); // Player score is 11
         playerState.setScore(11);
         playerState.setAction(PlayerAction.PLAYING);

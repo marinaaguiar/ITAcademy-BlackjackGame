@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerState {
-    private int playerId;
+    private String playerId;
     private List<String> hand;
     private int score;
     private PlayerAction action;
 
-    public PlayerState(int playerId) {
+    public PlayerState(String playerId) {
         this.playerId = playerId;
         this.action = PlayerAction.PLAYING;
         this.hand = new ArrayList<>();
@@ -23,7 +23,7 @@ public class PlayerState {
         this.action = playerAction;
     }
 
-    public void setPlayerId(int playerId) {
+    public void setPlayerId(String playerId) {
         this.playerId = playerId;
     }
 
@@ -31,16 +31,12 @@ public class PlayerState {
         this.hand = hand;
     }
 
-    public int getPlayerId() {
+    public String getPlayerId() {
         return playerId;
     }
 
     public PlayerAction getAction() {
         return action;
-    }
-
-    public List<String> getHand() {
-        return hand;
     }
 
     public int getScore() {

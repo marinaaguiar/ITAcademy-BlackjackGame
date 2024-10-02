@@ -42,9 +42,9 @@ public class GameController {
                 .switchIfEmpty(Mono.error(new GameNotFoundException("Game not found with id: " + id)));
     }
 
-    @PostMapping("/{id}/play")
-    public Mono<Game> makeMove(@PathVariable String id, @RequestBody MoveRequest moveRequest) {
-        return gameService.makeMove(id, moveRequest.getMoveType(), moveRequest.getAmountBet())
+    @PostMapping("/{id}/play/{playerId}")
+    public Mono<Game> makeMove(@PathVariable String id, @PathVariable String playerId, @RequestBody MoveRequest moveRequest) {
+        return gameService.makeMove(id, playerId, moveRequest.getMoveType(), moveRequest.getAmountBet())
                 .onErrorMap(IllegalArgumentException.class, e -> new InvalidMoveException(e.getMessage()));
     }
 

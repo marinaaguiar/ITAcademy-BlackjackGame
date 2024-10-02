@@ -38,7 +38,7 @@ public class GameActionInteractor {
         return Mono.just(game.getDeck().remove(0));
     }
 
-    public Mono<Game> hit(String gameId, int playerId) {
+    public Mono<Game> hit(String gameId, String playerId) {
         return gameRepository.findById(gameId)
                 .flatMap(game -> {
                     if (game.getGameState() == GameState.FINISHED) {
@@ -46,7 +46,7 @@ public class GameActionInteractor {
                     }
 
                     return Mono.justOrEmpty(game.getPlayersState().stream()
-                                    .filter(ps -> ps.getPlayerId() == playerId)
+                                    .filter(ps -> ps.getPlayerId().equals(playerId))
                                     .findFirst())
                             .flatMap(playerState -> {
                                 if (playerState.getAction() != PlayerAction.PLAYING) {
@@ -55,11 +55,17 @@ public class GameActionInteractor {
 
                                 return dealCard(game)
                                         .flatMap(card -> {
-                                            playerState.getHand().add(card);
-                                            playerState.setScore(CardUtils.calculateHandValue(playerState.getHand()));
+                                            playerState.getPlayerHand().add(card);
+                                            playerState.setScore(CardUtils.calculateHandValue(playerState.getPlayerHand()));
+                                            System.out.println("Player " + playerId + " hit and received: " + card + ". New score: " + playerState.getScore());
+
                                             if (playerState.getScore() > 21) {
                                                 playerState.setAction(PlayerAction.BUSTED);
+                                                System.out.println("Player " + playerId + " has busted.");
+                                                // Check if all players are busted after this hit
+                                                return finishGame(game);
                                             }
+
                                             return gameRepository.save(game);
                                         });
                             })
@@ -67,30 +73,25 @@ public class GameActionInteractor {
                 });
     }
 
-    public Mono<Game> stand(String gameId, int playerId) {
+    public Mono<Game> stand(String gameId, String playerId) {
         return gameRepository.findById(gameId)
                 .flatMap(game -> {
                     if (game.getGameState() == GameState.FINISHED) {
                         return Mono.error(new GameAlreadyFinishedException());
                     }
 
-                    System.out.println("Game State before stand: " + game.getGameState());
-                    System.out.println("Player States before stand: " + game.getPlayersState());
-
                     return Mono.justOrEmpty(game.getPlayersState().stream()
-                                    .filter(ps -> ps.getPlayerId() == playerId)
+                                    .filter(ps -> ps.getPlayerId().equals(playerId))
                                     .findFirst())
                             .flatMap(playerState -> {
-                                System.out.println("Found PlayerState: " + playerState);
-
                                 if (playerState.getAction() != PlayerAction.PLAYING) {
                                     return Mono.error(new StateNotAllowedException("Player cannot stand in current state"));
                                 }
 
                                 playerState.setAction(PlayerAction.STANDING);
+                                System.out.println("Player " + playerId + " has stood.");
 
-                                System.out.println("Updated PlayerState after standing: " + playerState);
-
+                                // Check if all players have finished their actions
                                 if (game.getPlayersState().stream()
                                         .allMatch(ps -> ps.getAction() != PlayerAction.PLAYING)) {
                                     System.out.println("All players have finished their actions. Finishing game...");
@@ -103,7 +104,7 @@ public class GameActionInteractor {
                 });
     }
 
-    public Mono<Game> doubleDown(String gameId, int playerId, int amountBet) {
+    public Mono<Game> doubleDown(String gameId, String playerId, int amountBet) {
         return gameRepository.findById(gameId)
                 .flatMap(game -> {
                     if (game.getGameState() == GameState.FINISHED) {
@@ -111,7 +112,7 @@ public class GameActionInteractor {
                     }
 
                     return Mono.justOrEmpty(game.getPlayersState().stream()
-                                    .filter(ps -> ps.getPlayerId() == playerId)
+                                    .filter(ps -> ps.getPlayerId().equals(playerId))
                                     .findFirst())
                             .flatMap(playerState -> {
                                 if (playerState.getAction() != PlayerAction.PLAYING) {
@@ -120,11 +121,16 @@ public class GameActionInteractor {
 
                                 return dealCard(game)
                                         .flatMap(card -> {
-                                            playerState.getHand().add(card);
-                                            playerState.setScore(CardUtils.calculateHandValue(playerState.getHand()));
+                                            playerState.getPlayerHand().add(card);
+                                            playerState.setScore(CardUtils.calculateHandValue(playerState.getPlayerHand()));
+
+                                            System.out.println("Player " + playerId + " doubled down and received: " + card + ". New score: " + playerState.getScore());
 
                                             if (playerState.getScore() > 21) {
                                                 playerState.setAction(PlayerAction.BUSTED);
+                                                System.out.println("Player " + playerId + " has busted.");
+                                                // Check if all players are busted after this action
+                                                return finishGame(game);
                                             } else {
                                                 playerState.setAction(PlayerAction.DOUBLED_DOWN);
                                             }
@@ -136,7 +142,7 @@ public class GameActionInteractor {
                 });
     }
 
-    public Mono<Game> surrender(String gameId, int playerId) {
+    public Mono<Game> surrender(String gameId, String playerId) {
         return gameRepository.findById(gameId)
                 .flatMap(game -> {
                     if (game.getGameState() == GameState.FINISHED) {
@@ -144,7 +150,7 @@ public class GameActionInteractor {
                     }
 
                     return Mono.justOrEmpty(game.getPlayersState().stream()
-                                    .filter(ps -> ps.getPlayerId() == playerId)
+                                    .filter(ps -> ps.getPlayerId().equals(playerId))
                                     .findFirst())
                             .flatMap(playerState -> {
                                 if (playerState.getAction() != PlayerAction.PLAYING) {
@@ -152,7 +158,9 @@ public class GameActionInteractor {
                                 }
 
                                 playerState.setAction(PlayerAction.SURRENDERED);
+                                System.out.println("Player " + playerId + " has surrendered.");
 
+                                // Check if all players have finished their actions
                                 if (game.getPlayersState().stream()
                                         .allMatch(ps -> ps.getAction() != PlayerAction.PLAYING)) {
                                     return finishGame(game);
@@ -167,6 +175,16 @@ public class GameActionInteractor {
     public Mono<Game> finishGame(Game game) {
         System.out.println("Finishing game...");
 
+        // Check if all players are busted
+        boolean allPlayersBusted = game.getPlayersState().stream()
+                .allMatch(playerState -> playerState.getAction() == PlayerAction.BUSTED);
+
+        if (allPlayersBusted) {
+            System.out.println("All players are busted. The dealer wins!");
+            game.setGameState(GameState.FINISHED);
+            return gameRepository.save(game);
+        }
+
         return Mono.fromCallable(() -> {
             while (game.getDealerScore() < 17) {
                 if (game.getDeck().isEmpty()) {
@@ -178,6 +196,7 @@ public class GameActionInteractor {
                 String card = game.getDeck().remove(0);
                 game.getDealerHand().add(card);
                 game.setDealerScore(CardUtils.calculateHandValue(game.getDealerHand()));
+                System.out.println("Dealer drew a card: " + card + ", new score: " + game.getDealerScore());
             }
 
             for (PlayerState playerState : game.getPlayersState()) {
@@ -188,11 +207,11 @@ public class GameActionInteractor {
 
                 if (playerState.getAction() != PlayerAction.BUSTED) {
                     if (playerState.getScore() > game.getDealerScore() || game.getDealerScore() > 21) {
-                        System.out.println("Player wins!");
+                        System.out.println("Player " + playerState.getPlayerId() + " wins!");
                     } else if (playerState.getScore() == game.getDealerScore()) {
-                        System.out.println("It's a tie!");
+                        System.out.println("Player " + playerState.getPlayerId() + " ties with the dealer!");
                     } else {
-                        System.out.println("Dealer wins!");
+                        System.out.println("Dealer wins against player " + playerState.getPlayerId() + "!");
                     }
                 }
             }

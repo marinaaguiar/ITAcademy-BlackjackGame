@@ -12,7 +12,7 @@ public interface GameService {
 
     Mono<Game> createSinglePlayerGame(String playerName);
     Mono<Game> startNewGame(List<String> playerIds);
-    Mono<Game> makeMove(String gameId, PlayerAction playerAction, int amountBet);
+    Mono<Game> makeMove(String gameId, String playerId, PlayerAction playerAction, int amountBet);
     Flux<Player> getPlayerRankings();
     Mono<Player> changePlayerName(String playerId, String newName);
     Mono<Game> getGameDetails(String id);
